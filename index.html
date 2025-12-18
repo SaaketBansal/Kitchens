@@ -7,10 +7,10 @@
     <style>
         body, html {
             margin: 0; padding: 0; width: 100%; height: 100%;
-            overflow: hidden; background-color: black; font-family: sans-serif;
+            overflow: hidden; background-color: #000; font-family: sans-serif;
         }
 
-        /* The Camera Layer */
+        /* The Camera Layer (Full Background) */
         #video-container {
             position: fixed; top: 0; left: 0;
             width: 100%; height: 100%; z-index: 1;
@@ -19,22 +19,29 @@
             width: 100%; height: 100%; object-fit: cover;
         }
 
-        /* The Kitchen PNG Layer */
-        #overlay {
+        /* The Square Image Layer (Centered) */
+        #overlay-container {
             position: fixed; top: 0; left: 0;
             width: 100%; height: 100%;
-            z-index: 2;
-            pointer-events: none; /* Allows clicks to pass through to buttons if any */
+            display: flex; align-items: center; justify-content: center;
+            z-index: 2; pointer-events: none;
+        }
+        #overlay {
+            width: 100vw; /* Fits the width of the phone */
+            height: 100vw; /* Keeps it 1:1 Square */
+            object-fit: contain;
         }
 
-        /* The Screenshot Button */
+        /* The UI Buttons */
+        #controls {
+            position: fixed; bottom: 40px; width: 100%;
+            display: flex; justify-content: center; z-index: 3;
+        }
         #capture-btn {
-            position: fixed; bottom: 30px; left: 50%;
-            transform: translateX(-50%);
-            padding: 15px 30px; background: #2ecc71; color: white;
-            border: none; border-radius: 50px; font-size: 18px;
-            font-weight: bold; z-index: 3; cursor: pointer;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            padding: 18px 35px; background: #ffffff; color: #000;
+            border: none; border-radius: 50px; font-size: 16px;
+            font-weight: bold; cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
         }
     </style>
 </head>
@@ -44,9 +51,13 @@
         <video id="webcam" autoplay playsinline></video>
     </div>
 
-    <img id="overlay" src="111.png" alt="Kitchen Overlay">
+    <div id="overlay-container">
+        <img id="overlay" src="111.png" alt="Kitchen Overlay">
+    </div>
 
-    <button id="capture-btn">Save Preview</button>
+    <div id="controls">
+        <button id="capture-btn">SAVE PHOTO</button>
+    </div>
 
     <canvas id="screenshot-canvas" style="display:none;"></canvas>
 
@@ -56,36 +67,36 @@
         const canvas = document.getElementById('screenshot-canvas');
         const overlayImg = document.getElementById('overlay');
 
-        // 1. Request Camera Access
         async function initCamera() {
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { facingMode: "environment" }, // Focus on back camera
+                    video: { facingMode: "environment", width: { ideal: 1280 }, height: { ideal: 720 } },
                     audio: false 
                 });
                 video.srcObject = stream;
             } catch (err) {
-                alert("Camera error: " + err.message);
+                alert("Please allow camera access to use this app.");
             }
         }
 
-        // 2. Take Screenshot Logic
         btn.onclick = function() {
-            // Set canvas size to match video/screen
+            // Screen Capture size
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
             const ctx = canvas.getContext('2d');
 
-            // Draw Camera frame
+            // 1. Draw Camera (Background)
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
             
-            // Draw Overlay Image on top
-            ctx.drawImage(overlayImg, 0, 0, canvas.width, canvas.height);
+            // 2. Draw 1:1 Overlay (Centered)
+            const side = canvas.width; 
+            const topOffset = (canvas.height - side) / 2;
+            ctx.drawImage(overlayImg, 0, topOffset, side, side);
 
-            // Convert to downloadable image
+            // 3. Download
             const link = document.createElement('a');
-            link.download = 'Kitchen-Design.png';
-            link.href = canvas.toDataURL();
+            link.download = 'Kitchen_Preview.png';
+            link.href = canvas.toDataURL('image/png');
             link.click();
         };
 
