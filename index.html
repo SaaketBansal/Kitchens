@@ -5,58 +5,94 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Kitchen Previewer</title>
     <style>
+        /* 1. Set the background to White */
         body, html {
             margin: 0; padding: 0; width: 100%; height: 100%;
-            overflow: hidden; background-color: #000; font-family: sans-serif;
+            overflow: hidden; background-color: #ffffff; 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         }
 
-        /* The Camera Layer (Full Background) */
-        #video-container {
-            position: fixed; top: 0; left: 0;
-            width: 100%; height: 100%; z-index: 1;
+        /* 2. Container that centers the 1:1 square on the tall screen */
+        #main-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
         }
+
+        /* 3. The 1:1 Square Box */
+        #square-frame {
+            position: relative;
+            width: 100vw;
+            height: 100vw;
+            max-width: 600px; /* Optional: limits size on tablets */
+            max-height: 600px;
+            overflow: hidden;
+            background-color: #000; /* Camera shows here */
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        /* 4. The Camera View (Inside the square) */
         video {
-            width: 100%; height: 100%; object-fit: cover;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            min-width: 100%;
+            min-height: 100%;
+            width: auto;
+            height: auto;
+            transform: translate(-50%, -50%);
+            object-fit: cover;
         }
 
-        /* The Square Image Layer (Centered) */
-        #overlay-container {
-            position: fixed; top: 0; left: 0;
-            width: 100%; height: 100%;
-            display: flex; align-items: center; justify-content: center;
-            z-index: 2; pointer-events: none;
-        }
+        /* 5. The Kitchen PNG (Inside the square, on top of camera) */
         #overlay {
-            width: 100vw; /* Fits the width of the phone */
-            height: 100vw; /* Keeps it 1:1 Square */
-            object-fit: contain;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2;
+            pointer-events: none;
         }
 
-        /* The UI Buttons */
+        /* 6. The Bottom Controls (In the white area) */
         #controls {
-            position: fixed; bottom: 40px; width: 100%;
-            display: flex; justify-content: center; z-index: 3;
+            padding: 40px 0;
+            background: #ffffff;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            z-index: 3;
         }
+
         #capture-btn {
-            padding: 18px 35px; background: #ffffff; color: #000;
-            border: none; border-radius: 50px; font-size: 16px;
-            font-weight: bold; cursor: pointer;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            padding: 16px 40px;
+            background: #222222;
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
     </style>
 </head>
 <body>
 
-    <div id="video-container">
-        <video id="webcam" autoplay playsinline></video>
-    </div>
+    <div id="main-container">
+        <div id="square-frame">
+            <video id="webcam" autoplay playsinline></video>
+            <img id="overlay" src="111.png" alt="Kitchen Overlay">
+        </div>
 
-    <div id="overlay-container">
-        <img id="overlay" src="111.png" alt="Kitchen Overlay">
-    </div>
-
-    <div id="controls">
-        <button id="capture-btn">SAVE PHOTO</button>
+        <div id="controls">
+            <button id="capture-btn">SAVE DESIGN</button>
+        </div>
     </div>
 
     <canvas id="screenshot-canvas" style="display:none;"></canvas>
@@ -70,32 +106,32 @@
         async function initCamera() {
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { facingMode: "environment", width: { ideal: 1280 }, height: { ideal: 720 } },
+                    video: { facingMode: "environment" },
                     audio: false 
                 });
                 video.srcObject = stream;
             } catch (err) {
-                alert("Please allow camera access to use this app.");
+                alert("Camera access is required to see the materials.");
             }
         }
 
         btn.onclick = function() {
-            // Screen Capture size
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
+            // We only want to save the 1:1 square, not the whole white screen
+            const size = 1080; // High resolution save
+            canvas.width = size;
+            canvas.height = size;
             const ctx = canvas.getContext('2d');
 
-            // 1. Draw Camera (Background)
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            // 1. Draw Camera (Clipped to square)
+            // We calculate coordinates to ensure the camera isn't stretched
+            ctx.drawImage(video, 0, 0, size, size);
             
-            // 2. Draw 1:1 Overlay (Centered)
-            const side = canvas.width; 
-            const topOffset = (canvas.height - side) / 2;
-            ctx.drawImage(overlayImg, 0, topOffset, side, side);
+            // 2. Draw Kitchen Overlay
+            ctx.drawImage(overlayImg, 0, 0, size, size);
 
             // 3. Download
             const link = document.createElement('a');
-            link.download = 'Kitchen_Preview.png';
+            link.download = 'MyKitchenPlan.png';
             link.href = canvas.toDataURL('image/png');
             link.click();
         };
