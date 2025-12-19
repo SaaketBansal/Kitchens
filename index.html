@@ -10,7 +10,7 @@
         body, html {
             margin: 0; padding: 0; width: 100%; height: 100%;
             overflow: hidden; background-color: #ffffff; 
-            font-family: 'Montserrat', sans-serif; /* Architectural font */
+            font-family: 'Montserrat', sans-serif;
         }
 
         #main-container {
@@ -23,18 +23,18 @@
         /* Branding Header */
         #header {
             display: grid;
-            grid-template-columns: 3fr 6fr;
+            grid-template-columns: 3.5fr 5.5fr; /* Shifted more space to the left to push text right */
             width: 100%;
             background: #ffffff;
             align-items: center;
-            padding: 15px 0;
+            padding: 20px 0;
         }
 
         #logo {
-            width: 100%;
+            width: 80%; /* Smaller logo to create more gap */
             aspect-ratio: 1 / 1;
             object-fit: contain;
-            padding: 5px;
+            justify-self: center; /* Centers logo in its 3.5fr box */
         }
 
         #business-name {
@@ -43,22 +43,22 @@
             justify-content: center;
             color: #000000;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            padding-left: 20px; /* Forces text further right from the logo */
         }
 
-        /* "BANSAL" - Extra Bold */
+        /* "BANSAL" - Large and Bold */
         #business-name span:first-child { 
-            font-size: 8.5vw; 
+            font-size: 9.5vw; 
             font-weight: 900; 
-            line-height: 0.9;
+            line-height: 1;
         }
 
-        /* "ASSOCIATES" - Lighter and Spaced */
+        /* "ASSOCIATES" - Larger and Spaced */
         #business-name span:last-child { 
-            font-size: 3.8vw; 
+            font-size: 5.5vw; /* Increased size as requested */
             font-weight: 400; 
-            letter-spacing: 0.4em; /* Wide spacing for high-end look */
-            margin-top: 2px;
+            letter-spacing: 0.2em;
+            margin-top: 5px;
         }
 
         /* 1:1 Preview Box */
@@ -68,8 +68,7 @@
             height: 100vw;
             background-color: #000;
             overflow: hidden;
-            border-top: 1px solid #eee;
-            border-bottom: 1px solid #eee;
+            border-top: 1px solid #f0f0f0;
         }
 
         video {
@@ -104,21 +103,19 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            background: #fff;
         }
 
         #capture-btn {
-            padding: 18px 50px;
+            padding: 18px 60px;
             background: #000000;
             color: #ffffff;
             border: none;
-            border-radius: 2px; /* Sharper edges for architectural feel */
-            font-size: 13px;
+            border-radius: 2px;
+            font-size: 14px;
             font-weight: 900;
             letter-spacing: 3px;
             text-transform: uppercase;
             cursor: pointer;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
     </style>
 </head>
@@ -141,7 +138,7 @@
 
         <div id="controls">
             <button id="capture-btn">SAVE PREVIEW</button>
-            <p style="font-size: 9px; color: #bbb; margin-top: 15px; letter-spacing: 2px;">BANSAL ASSOCIATES | ARCHITECTURAL DESIGN</p>
+            <p style="font-size: 10px; color: #aaa; margin-top: 15px; letter-spacing: 2px;">BANSAL ASSOCIATES | ARCHITECTURAL SOLUTIONS</p>
         </div>
     </div>
 
@@ -163,7 +160,7 @@
                 });
                 video.srcObject = stream;
             } catch (err) {
-                alert("Camera access required.");
+                alert("Camera access required for live preview.");
             }
         }
 
@@ -171,9 +168,8 @@
             flash.style.display = 'block';
             setTimeout(() => { flash.style.display = 'none'; }, 150);
 
-            // Canvas Proportions
             const w = 1080;
-            const headerH = 340; 
+            const headerH = 380; // Taller header to accommodate larger text
             const squareH = 1080; 
             const totalH = headerH + squareH;
 
@@ -181,39 +177,32 @@
             canvas.height = totalH;
             const ctx = canvas.getContext('2d');
 
-            // 1. White Background
             ctx.fillStyle = "#ffffff";
             ctx.fillRect(0, 0, w, totalH);
 
-            // 2. Draw Logo
-            ctx.drawImage(logoImg, 50, 40, 260, 260);
+            // Draw Logo - Pushed a bit left
+            ctx.drawImage(logoImg, 60, 60, 260, 260);
 
-            // 3. Draw Architectural Text on Canvas
-            // Need to wait for font to be ready for Canvas
+            // Draw Branding Text - Shifted rightward (Start at x=400)
             ctx.fillStyle = "#000000";
             ctx.textBaseline = "top";
             
             // "BANSAL"
-            ctx.font = "900 100px Montserrat";
-            ctx.fillText("BANSAL", 350, 85);
+            ctx.font = "900 110px Montserrat";
+            ctx.fillText("BANSAL", 400, 100);
             
             // "ASSOCIATES"
-            ctx.font = "400 42px Montserrat";
-            ctx.letterSpacing = "12px"; // Spaced out for photo
-            ctx.fillText("ASSOCIATES", 350, 200);
+            ctx.font = "400 65px Montserrat";
+            ctx.letterSpacing = "6px"; 
+            ctx.fillText("ASSOCIATES", 400, 220);
 
-            // 4. Draw Camera Feed
             ctx.drawImage(video, 0, headerH, w, squareH);
-
-            // 5. Draw Kitchen Overlay
             ctx.drawImage(overlayImg, 0, headerH, w, squareH);
 
-            // 6. Generate Filename
             const now = new Date();
             const timeString = now.getFullYear().toString() + (now.getMonth() + 1) + now.getDate() + "_" + now.getHours() + now.getMinutes() + now.getSeconds();
             const fileName = "Bansal_Associates_" + timeString + ".png";
 
-            // 7. Download
             const link = document.createElement('a');
             link.download = fileName;
             link.href = canvas.toDataURL('image/png');
